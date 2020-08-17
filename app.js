@@ -5,9 +5,12 @@ const getLyricsButton = document.getElementsByClassName("get-lyrics-button");
 const lyrics = document.getElementById("lyrics");
 const result = document.getElementById("result");
 const api = "https://api.lyrics.ovh/";
+const lyricsSection = document.getElementById("lyrics-section");
+const lyricsTitle = document.getElementById("lyrics-title");
 
 // Event For Song Name Input And Search
 inputSongName.addEventListener("keyup", (e) => {
+    document.getElementById("lyrics").style.display = "none";
     if (event.keyCode == 13) {
         let inputValue = inputSongName.value.trim();
         if (!inputValue) {
@@ -21,6 +24,7 @@ inputSongName.addEventListener("keyup", (e) => {
 // Event for Search Button 
 searchButton.addEventListener("click", (e) => {
     let inputValue = inputSongName.value.trim();
+    document.getElementById("lyrics").style.display = "none";
     if (!inputValue) {
         alert("Please Write The Valid Song Name")
     } else {
@@ -31,32 +35,32 @@ searchButton.addEventListener("click", (e) => {
 async function searchSong(song) {
     const res = await fetch(`${api}suggest/${song}`);
     const songData = await res.json();
-    console.log(songData);
     showSongInfo(songData);
 }
 // Showing Song Search Result From Api 
 function showSongInfo(songInfo) {
+    result.style.display = 'block';
     result.innerHTML = ` ${songInfo.data.map(song => `<p class="author lead song-result"><strong class="song-title">${song.title}</strong> Album by <span class="song-artist">${song.artist.name}</span> <button song-data="${song.id}" song-data-title="${song.title}" song-data-artist="${song.artist.name}" class="btn btn-success get-lyrics-button">Get Lyrics</button></p>`).join('')}`;
 }
 // Get lyrics for song 
 result.addEventListener("click", e => {
+    document.getElementById("lyrics").style.display = "block";
     clicked = e.target;
     if (clicked.tagName === "BUTTON") {
-        console.log('123');
         const artistName = clicked.getAttribute("song-data-artist");
         const songTitle = clicked.getAttribute("song-data-title");
-        console.log(artistName, songTitle);
         getLyrics(artistName, songTitle);
     }
 })
-
-
-// function showSongInfo(songInfo) {
-//     function setSongInfo(number) {
-//         for (let number = 0; number <= 10; number++) {
-//             document.getElementsByClassName("song-title")[number].textContent = songInfo.data[number].title;
-//             document.getElementsByClassName("song-artist")[number].textContent = songInfo.data[number].artist.name;
-//         }
-//     }
-//  setSongInfo(0);
-// }
+// displaying lyrics 
+async function getLyrics(artist, songTitle){
+    const res = await fetch(`${api}v1/${artist}/${songTitle}`);
+    const songData = await res.json();
+    const lyrics = songData.lyrics;
+    lyricsTitle.innerText = songTitle;
+    if (lyrics == undefined) {
+        return "lyrics not found";
+    } else {
+        lyricsSection.innerHTML = `<pre class="lyric text-white">${lyrics}</pre>`;
+    }
+}
